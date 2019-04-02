@@ -28,6 +28,4 @@ public class ImplCallable implements Callable<String> {
             e.printStackTrace();
         }
     }
-    
-
 }

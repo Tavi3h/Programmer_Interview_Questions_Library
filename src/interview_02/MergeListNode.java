@@ -3,34 +3,10 @@ package interview_02;
 import org.junit.Test;
 
 // 将两个有序链表合并为一个有序链表
-class ListNode {
-
-    public int val;
-    public ListNode next;
-
-    public ListNode(int x) {
-        val = x;
-    }
-
-    @Override
-    public String toString() {
-        return next != null ? val + "->" + next.toString() : val + "";
-    }
-
-    public static ListNode buildList(int... vals) {
-        ListNode dummy = new ListNode(-1), curr = dummy;
-        for (int i : vals) {
-            curr.next = new ListNode(i);
-            curr = curr.next;
-        }
-        return dummy.next;
-    }
-}
-
 public class MergeListNode {
 
     public ListNode merge(ListNode head1, ListNode head2) {
-        
+
         ListNode dummy = new ListNode(-1);
         ListNode curr = dummy;
 

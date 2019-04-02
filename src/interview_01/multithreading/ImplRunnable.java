@@ -12,7 +12,7 @@ public class ImplRunnable implements Runnable {
     
     @Test
     public void testCase() {
-        new Thread(new ImplRunnable()).start();;
+        new Thread(new ImplRunnable()).start();
     }
 
 }

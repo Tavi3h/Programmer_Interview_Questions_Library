@@ -5,12 +5,14 @@ import java.util.List;
 
 // 实现观察者模式
 
+// Subject
 interface Subject {
     void registerObserver(Observer o);
     void removeObserver(Observer o);
     void notifyObservers();
 }
 
+// ConcreteSubject
 class Weather implements Subject {
     
     private List<Observer> observers = new ArrayList<>();
@@ -48,10 +50,12 @@ class Weather implements Subject {
     }
 }
 
+// Observer
 interface Observer {
     void update(double temperature);
 }
 
+// ConcreteObserver
 class WeatherDisplay1 implements Observer {
 
     private double temperature;
@@ -71,6 +75,7 @@ class WeatherDisplay1 implements Observer {
     }
 }
 
+// ConcreteObserver
 class WeatherDisplay2 implements Observer {
 
     private double temperature;

@@ -540,7 +540,7 @@ private static <T> void exch(T[] a, int i, int j) {
 2. JSP和Servlet有哪些相同点和不同点？它们之间的联系是什么?
 3. `switch`是否能作用在`byte`上？是否能作用在`long`上？是否能作用在`String`上？
 4. 数据库连接池的工作机制是什么？
-5. 多线程同步有集中实现方法？
+5. 多线程同步有几种实现方法？
 6. HTML的`Form`和`XForm`的区别是什么？
 7. `forward`和`redirect`的区别是什么？
 8. Overload和Override的区别是什么？Overload的方法是否可以改变返回值的类型？
@@ -556,4 +556,180 @@ class A {
 
 **解答：**
 
+1. `static`可用来修饰成员变量、成员方法、代码块、内部类，还可用来进行静态导入。
+    - 修饰成员变量：可以通过使用`static`来使得变量被类拥有，所有的对象都共享这个静态变量。对静态变量的引用有两种方式，分别为“类.静态变量”和“对象.静态变量”。
+    - 修饰成员方法：被`static`修饰的方法将成为类的方法，不需要创建对象就可以被调用。静态方法中不能使用`this`和`super`关键字，在没有实例化相关对象时不能调用非静态方法，同样地也不能访问非静态变量。
+    - 修饰代码块：静态代码块是类中独立于成员变量和成员方法的代码块。它不在任何一个方法体内。JVM在加载类的时候会执行静态代码块，静态代码块只会被执行一次。静态代码块通常被用来初始化静态变量。
+    - 修饰内部类：被`static`修饰的内部类，可以不依赖于外部类实例对象而被实例化，而通常的内部类需要在外部类实例化后才能实例化。
+    - 静态导入：使用静态导入可以不通过调用包名，直接使用包里的静态方法。
+2. 相同点和不同点：
+    - 相同点：JSP可以被看作是一个特殊的Servlet，它是对Servlet的扩展，只要是JSP可以完成的工作，使用Servlet都可以完成。由于JSP页面最终要被转为Servlet来运行，因此处理实际请求的实际上还是Servlet。
+    - 不同点：Servlet的实现方式是在Java语言中嵌入HTML代码，编写和修改HTML非常不方便，所以它更适合做流程控制和业务处理。而JSP的实现方式为在HTML中嵌入Java代码，比较适合页面的显示；Servlet中没有内置对象，JSP中具有内置对象。
+3. 只有能够被转为`int`类型的变量或是`String`和`enum`类型的变量才能用作`switch`语句的key。所以`long`类型不可以，而`byte`和`String`可以。
+4. 数据库连接池负责分配、管理并释放数据库链接，它允许应用程序重复使用一个现有的数据库链接，而不是再重新建立一个新的数据库链接。同时，它还负责释放空闲时间超过最大空闲时间的数据库链接，避免因为没有释放数据库而引发的数据库链接泄漏。在J2EE中，服务器启动时就会创建具有一定链接数量的连接池。当客户程序需要访问数据库时，就可以从池中获取链接，而不用创建新的链接，同时将该链接标记为繁忙状态。当使用完毕后会再将该链接标记为空闲状态，使得其他程序可以获取该链接。
+5. 有如下几种方式：
+    - 使用`synchronized`关键字。在Java语言中，每个对象都有一个对象锁与之关联，该锁表明对象在任何时候只允许被一个线程所拥有，当一个线程调用对象的一段`synchronized`代码时，首先需要获取这个锁，然后才能执行相应的代码，执行结束后，锁被释放。`synchronized`关键字主要有两种用法：
+        + `synchronized`方法：在方法的声明前加入`synchronized`关键字，这样就可以确保这个方法在同一时刻只能被一个线程来访问，从而保证了多线程访问的安全性。
+        + `synchronized`代码块：可以把任意的代码段声明为`synchronized`，并指定上锁的对象，该方法具有更高的灵活性。
+    - 使用`wait()`和`notify()`方法：当使用`synchronized`来修饰某个共享资源的时候，如果线程1在执行`synchronized`代码，另外一个线程2也要同时执行同一个对象的`synchronized`代码时，线程2将要等待线程1执行完毕并释放锁后才能执行。这种情况下可以使用`wait()`和`notify()`方法。在执行`synchronized`代码时，线程可以调用对象的`wait()`方法，并释放对象锁，进入等待状态。而且可以使用`notify()`或`notifyAll()`方法通知正在等待的其他线程。`notify()`方法仅唤醒等待队列中的第一个线程，并允许它去获得锁，而`notifyAll()`方法唤醒所有等待这个对象的线程，并允许它们去获得锁。
+    - 使用`Lock`：`Lock`也可以用来实现多线程的同步，具体通过`lock()`、`tryLock()`、`tryLock(long timeout, TimeUnit unit)`、`lockInterruptibly()`方法来实现。
+6. 相比于`form`，`XForm`是下一代HTML表单标准，它提供更加丰富灵活的表单控件，同时更加规范、可用性更高。它使用XML定义数据，同时也使用XML来存储及传递数据。
+7. `forward`是服务器内部的重定向，服务器直接访问目标地址的url，把那个url的响应内容读取过来，而客户端并不知道，因此，在客户端浏览器的地址栏中不会显示转向后的地址，还是原来的地址。由于整个定向过程中用的是同一个请求，因此请求携带的信息会被保留下来。`redirect`则是客户端重定向，是完全的跳转，即相当于重新发出一个新的请求，因此浏览器中会显示跳转后的地址。
+8. Overload是重载，重载是指在一个类中定义了多个同名方法，它们具有不同的参数列表。Override是指覆盖，即子类对父类或者接口方法的重写，以达到不同的效果。
+9. 合法。因为该类没有被`public`修饰。
+10. 主要表现在如下几个方面：
+    - 由于Java具有跨平台和可移植性强的特点，所以相比于CGI，Sevrlet也具有较好的移植性。 
+    - 由于CGI针对每个请求都会创建一个进程来处理，而Servlet针对每个请求创建一个线程来执行，所以Servlet响应效率更高。
+    - Servlet可以与Web服务器进行交互，而CGI则无法与Web服务器进行交互。
+    - Servlet提供了许多非常有用的接口用来读取或设置HTTP头消息，处理Cookie和跟踪会话状态。
+    - Servlet的可扩展性更强。
 
+### 编程题
+
+**问题：**
+
+1. 对数组进行顺序排序。
+2. 用Java语言写一段访问Oracle数据库的程序，并实现数据查询。
+3. 请给出单例模式的实现代码。
+4. 用循环控制语句打印输出1+3+5+...+99的结果。
+
+**解答：**
+
+1. 这里使用选择排序。
+```java
+public static <T extends Comparable<? super T>> void sort(T[] a) {
+    int N = a.length; 
+    for (int i = 0; i < N; i++) {
+        int min = i; 
+        for (int j = i + 1; j < N; j++) {
+            if (less(a[j], a[min])) {
+                min = j;
+            }
+        }
+        exch(a, i, min);
+    }
+}
+
+private static <T extends Comparable<? super T>> boolean less(T v, T w) {
+    return v.compareTo(w) < 0;
+}
+
+private static <T> void exch(T[] a, int i, int j) {
+    T t = a[i];
+    a[i] = a[j];
+    a[j] = t;
+}
+```
+2. 解答：
+```java
+public Connection getConnection() {
+    Connection conn = null;
+    String driver = "oracle.jdbc.driver.OracleDriver";
+    String url = "${url}"; // 代表url
+    String user = "user";
+    String pw = "password";
+    try {
+        Class.forName(driver);
+        conn = DriverManager.getConnection(url, user, pw);
+    } catch (ClassNotFoundException e) {
+        e.printStackTrace();
+    } catch (SQLException e) {
+        e.printStackTrace();
+    }
+    return conn;
+}
+
+public void printResult() {
+    Connection conn = null;
+    PreparedStatement pstat = null;
+    ResultSet rs = null;
+    conn = getConnection();
+    String sql = "${Query}"; // 代表sql语句
+    try {
+        pstat = conn.prepareStatement(sql);
+        rs = pstat.executeQuery();
+        while (rs.next()) {
+            System.out.println(rs.getString("${columnName}")); // 代表列名
+        }
+    } catch (SQLException e) {
+        e.printStackTrace();
+    } finally {
+        if (rs != null) {
+            try {
+                rs.close();
+            } catch (SQLException e) {
+                e.printStackTrace();
+            }
+        }
+        if (pstat != null) {
+            try {
+                pstat.close();
+            } catch (SQLException e) {
+                e.printStackTrace();
+            }
+        }
+        if (conn != null) {
+            try {
+                conn.close();
+            } catch (SQLException e) {
+                e.printStackTrace();
+            }
+        }
+    }
+}
+```
+3. 参见真题二问答题中问题2的答案。
+4. 解答：
+```java
+public void sum() {
+    int sum = 0;
+    for (int i = 1; i < 100; i += 2) {
+        sum += i;
+    }
+    System.out.println("1+3+5+...+99=" + sum);
+}
+```
+
+## 真题六
+
+### 简答题
+
+**问题：**
+
+1. 为什么不能通过返回值来对方法进行重载？
+2. 是否可以用`volatile`来修饰数组？
+3. `a=a+b`和`a+=b`有什么不同？
+4. 如何查看Java程序使用内存的情况？
+5. 四种会话跟踪技术是什么？
+6. 在多线程编程的时候有哪些注意事项？
+
+**解答：**
+
+1. 假设两个方法只有返回值不同，其方法名和参数列表均相同，则在对其调用时会出现歧义。
+2. 可以。此时`volatile`修饰的数组的引用，而不是数组中的值。
+3. 在Java中，当参与运算的两个数是`byte`、`short`或`int`时，它们首先都会被转换为`int`类型，再进行计算。然后把计算的结果赋值给用来存储结果的变量。如果用来存储结果变量的类型是`byte`或`short`，这意味着需要把`int`类型转换为`byte`或`short`类型。`a+=b`会进行隐式转换，将结果转换为`a`的类型。而`a=a+b`不会把`a+b`运算结果进行隐式转换。
+4. Java提供了一个`Runtime`类实例用于查看内存使用情况：
+```java
+public class JVMRuntime {
+    public static void main(String[] args) {
+        System.out.println(Runtime.getRuntime().freeMemory());
+        System.out.println(Runtime.getRuntime().totalMemory());
+        System.out.println(Runtime.getRuntime().maxMemory());
+        System.out.println(Runtime.getRuntime().availableProcessors());
+    }
+}
+```
+
+### 数据库设计题目
+
+**问题：**
+
+有如下学生信息：
+
+学生表`student(stu_id, stu_name);`
+课程表`course(c_id, c_name);`
+成绩表`score(stu_id, c_id, score);`
+
+1. 写出想学生表中插入一条数据的SQL语句。
+2. 查询名字为James的学生所选的课程。
+3. 查询`stu_id`为4的学生所学课程的成绩。

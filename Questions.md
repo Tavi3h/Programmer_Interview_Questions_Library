@@ -719,6 +719,12 @@ public class JVMRuntime {
     }
 }
 ```
+5. 四种会话跟踪常用的方法：
+    - url重写
+    - 隐藏表单域
+    - cookie
+    - session
+
 
 ### 数据库设计题目
 

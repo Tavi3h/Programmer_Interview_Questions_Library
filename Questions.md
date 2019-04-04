@@ -750,3 +750,197 @@ public class JVMRuntime {
 1. 假设`stu_id`是该表的主键，且具有自增属性。`INSERT INTO student (stu_name) VALUES ("Tavish");`
 2. `SELECT c.c_name FROM (course c INNER JOIN score sc ON c.c_id = sc.c_id) INNER JOIN student st ON sc.stu_id = st.stu_id WHERE st.stu_name = "James";`
 3. `SELECT sc.score FROM score sc INNER JOIN student st ON sc.stu_id = st.stu_id WHERE st.stu_id = 4;`
+
+## 真题七
+
+### 简答题
+
+**问题：**
+
+1. 甲、乙两个人再玩彩数字游戏，甲随机写了一个数字，在[1,100]区间之内，将这个数字写在一张纸上，然后乙来猜。如果乙猜的数字偏小，甲会提示“数字偏小”。一旦乙猜的数字偏大，甲以后就再也不会提示了，只会回答“猜对或猜错”。请问：乙至少猜多少次才可以准确猜出这个数字？在这种策略下，乙猜第一个数字是什么？
+2. 请给出Java异常类的继承体系结构，以及Java异常的分类，且为每种类型的异常各举几个例子。
+3. 在Web开发中，如何实现会话的跟踪。
+4. 描述Java类加载器的原理及其组织结构。
+5. 请简述Spring架构中IoC的实现原理。
+6. 下面程序是否存在问题？如果存在，请指出问题所在；如果不存在，请说明输出结果。
+```java
+public class Test {
+
+    public static String result = "";
+
+    public static void f(int i) {
+        try {
+            if (i == 1) {
+                throw new Exception(exception message);
+            }
+        } catch (Exception e) {
+            result += "2";
+            return;
+        } finally {
+            result += "3";
+        }
+        result += "4";
+    }
+
+    public static void main(String[] args) {
+        f(0);
+        f(1);
+        System.out.println(result);
+    }
+}
+```
+7. 下面程序是否存在问题？如果存在，请指出问题所在；如果不存在，说明输出结果。
+```java
+public class HelloB extends HelloA {
+    public HelloB() {
+        System.out.println("HelloB");
+    }
+    {
+        System.out.println("I'm B class");
+    }
+    static {
+        System.out.println("static B");
+    }
+    public static void main(String[] args) {
+        new HelloB();
+    }
+}
+
+class HelloA {
+    public HelloA() {
+        System.out.println("HelloA");
+    }
+    {
+        System.out.println("I'm A class");
+    }
+    static {
+        System.out.println("static A");
+    }
+}
+```
+8. 下面程序是否存在问题？如果存在，请指出问题所在；如果不存在，说明输出结果。
+```java
+public class Test {
+    public static void main(String[] args) {
+        Test t = new Test();
+        int i = 0;
+        t.increase(i);
+        i = i++;
+        System.out.println(i);
+    }
+
+    void increase(int i) {
+        i++;
+    }
+}
+```
+9. 下面程序是否存在问题？如果存在，请指出问题所在；如果不存在，说明输出结果。
+```java
+public class Test {
+
+    public static void main(String[] args) {
+        String str = new String("good");
+        char[] ch = {'a', 'b', 'c'};
+        Test ex = new Test();
+        ex.change(str, ch);
+        System.out.print(str + "and");
+        System.out.print(ch);
+    }
+
+    public void change(String str, char[] ch) {
+        str = "test ok";
+        ch[0] = 'g';
+    }
+}
+```
+10. 下面程序是否存在问题？如果存在，请指出问题所在；如果不存在，说明输出结果。
+```java
+package package1;
+import java.util.Date;
+
+public class Test extends Date {
+    public void test() {
+        System.out.println(super.getClass().getName());
+    }
+
+    public static void main(String[] args) {
+        new Test().test();
+    }
+}
+```
+
+**解答：**
+
+1. 答案参见原书P208。
+2. Java语言提供了两种错误的处理类，分别为`Error`和`Exception`，且它们具有共同的父类`Throwable`。
+`Error`表示程序在运行期间出现了非常严重的错误，且该错误是不可恢复的。当发生此类错误时，JVM会选择终止程序的运行。此外，编译器不会检查`Error`是否被处理，所以通常不用去捕获`Error`类型的异常，即一个正确的程序中是不应该存在`Error`的。`Error`的子类有`OutOfMemoryError`、`NoClassDefFoundError`等。
+`Exception`表示可恢复的异常，是编译器可以捕捉到的。它包含两种类型：运行时异常和受检查异常。
+    - 运行时异常：对于运行时异常，编译器不强制对其进行捕获并处理。如果不对这种异常进行处理，当出现这种异常时，会由JVM进行处理。常见的运行时异常有`NullPointerException`
+    、`ClassCastException`和`IndexOutOfBoundException`等。
+    - 受检查异常：对于受检查异常，编译器会强制要求程序去捕获此类型的异常，即把可能会出现这些异常的代码放到`try`块中，把对异常的处理代码放到`catch`块中。这种异常一般在如下的情况中使用，例如异常的发生并不会导致程序出错，进行处理后可以继续执行后序的操作；程序依赖于不可靠的外部条件，例如系统I/O。常见的受检查异常有`SQLException`、`IOException`等。
+3. 参见真题六中简答题问题5的答案。
+4. Java语言是一种具有动态性的解释型语言，类只有被加载的JVM中后才能运行。当运行程序的时候，JVM会将编译生成.class文件按照需求和一定的规则加载到内存中，并组织成为一个完整的Java应用程序。这个加载过程是由加载器来完成的，具体而言是由`ClassLoader`和它的子类来实现。类加载器本身也是一个类，其实质是将类文件从硬盘读取到内存中。
+类的加载方式分为隐式装载与显式装装载两种。隐式装载指的是程序在使用`new`等方式创建对象时，会隐式地调用类的加载器将对应的类加载到JVM中。显式装载指的是通过直接调用`Class.forName()`方法将所需的类加载到JVM中。
+任何一个工程项目都是由许多个类组成的，当程序启动的时候，只把需要的类加载到JVM中，其他的类只有在被使用到的时候才会被加载。采用这种方法，一方面可以加快加载速度，另一方面可以节约程序运行过程中对内存的开销。此外，在Java语言中，每个类或接口都对应一个.class文件，这些文件可以被看成是一个个可以被动态加载的单元，因此，当只有部分类被修改时，只需要重新编译变化的类即可，而不需要重新编译所有的文件，因此可以加快编译速度。
+Java语言将类分为三种：系统类、扩展类和自定义类。Java语言针对这三种不同的类提供了三种类型的加载器，这三种类加载器的关系如下：
+    - BootstrapLoader：负责加载系统类，jre/lib/rt.jar中的类
+    - ExtClassLoader：负责加载扩展类，jre/lib/ext/\*.jar中的类
+    - AppClassLoader：负责加载应用类，classpath下的类
+这三个类通过委托的方式来协调工作并完成类的加载，具体而言，就是当有类需要被加载时，类装在其会请求父类来完成这个载入工作，父类会使用其自己的搜索路径来搜索需要被载入的类，如果搜索不到，才会由子类按照其搜索路径来搜索加载的类。
+三个类加载器的关系如下：
+```java
+public class Test {
+    public static void main(String[] args) {
+        ClassLoader app = Test.class.getClassLoader();
+        System.out.println(app);
+        ClassLoader ext = app.getParent();
+        System.out.println(ext);
+        ClassLoader boot = ext.getParent();
+        System.out.println(boot);
+    }
+}
+// output:
+// sun.misc.Launcher$AppClassLoader@2a139a55
+// sun.misc.Launcher$ExtClassLoader@7852e922
+// null
+```
+由上可以看出`Test`类是由`AppClassLoader`加载的。三个类加载器的继承关系为：`AppClassLoader`->`ExtClassLoader`->`BootstrapClassLoader`。由于`BootstrapClassLoader`是由C++语言编写的，依Java的观点来看，逻辑上并不存在`Bootstrap Loader`的类实体，所以在Java程序代码里试图打印出其内容时，我们就会看到输出为`null`。
+类的加载主要可以分为三个步骤：
+    - 装载：根据查找路径找到相对应的class文件，然后导入
+    - 链接
+        + 检查：检查待加载class文件的正确性
+        + 准备：给类中的静态变量分配存储空间
+        + 解析：将符号引用转换成直接引用
+    - 初始化：对静态变量和静态代码块执行初始化工作
+5. Spring容器会根据配置文件或注解通过反射的方式创建对象，并通过构造方法、setter方法或自动注入的形式将对象注入到所需的地方。具体参见原书P112。
+6. 没有问题，结果为3423。
+7. 没有问题，结果如下：
+```text
+static A
+static B
+I'm A class
+HelloA
+I'm B class
+HelloB
+```
+Java程序初始化工作可以在许多不同的代码块中完成，它们执行的顺序如下：父类静态变量、父类静态代码块、子类静态变量、子类静态代码块、父类非静态变量、父类非静态代码块、父类构造函数、子类非静态变量、子类非静态代码块、子类构造函数。
+8. 没有问题，结果为0。
+本题关键在于理解`i = i++;`，而`increase()`方法是干扰项，该方法对`i`的值的改变不起任何作用。
+后置自增的原理如下：
+    - 将变量`i`的值取出，放在临时变量`tmp`中。
+    - 变量`i`执行自增操作。
+    - 把临时变量`tmp`的值作为自增运算的结果返回。
+对于`i = i++`，具体过程如下：
+    - `tmp = i;`，将变量`i`的值保存在变量`tmp`中。
+    - `i = i + 1`，变量`i`执行自增，自增后`i = 1`。
+    - `i = tmp`，自增操作的返回值0赋值给`i`，此时`i = 0`。
+9. 没有问题。根据题意应该输出`goodandgbc`。
+10. 没有问题，输出结果为`package1.Test`。实际这里代码写`this`或`super`没有区别，程序在运行时调用的是`Object`类的`getClass()`方法，而该方法的解释为返回此对象的运行时类。如果要得到父类的类型，则应该写为`this.getClass().getSuperClass().getName();`。
+
+### 算法题
+
+**问题：**
+
+1. 有两个有序的集合，集合中的每个元素都是一段范围，求其交集。例如集合{[4, 8], [9, 13]}和{[6, 12]}的交集为{[6, 8], [9, 12]}。
+2. 任意2n个整数，从其中选出n个整数，使得选出的n个整数之和与剩下的n个整数之和的差最小。
+3. 一个文件中有10000个数，用Java语言实现一个多线程程序，将这10000个数输出到5个不同文件中（不要求输出到每个文件中的数量相同）。要求启动10个线程，两两一组，分为5组。每组两个线程分别将文件中的奇数和偶数输出到该组对应的一个文件中，需要偶数线程每打印10个偶数以后，就令奇数线程打印10个奇数，如此交替进行。同时需要记录输出进度，每完成1000个数就在控制台中打印当前完成数量，并在所有线程结束后，在控制台输出“Done”。

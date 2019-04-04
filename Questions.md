@@ -720,11 +720,16 @@ public class JVMRuntime {
 }
 ```
 5. 四种会话跟踪常用的方法：
-    - url重写
-    - 隐藏表单域
-    - cookie
-    - session
-
+    - url重写：URL重写的技术就是在URL结尾添加一个附加数据以标识该会话,把会话ID通过URL的信息传递过去，以便在服务器端进行识别不同的用户。 
+    - 隐藏表单域：将会话ID添加到HTML表单元素中提交到服务器,此表单元素并不在客户端显示。 
+    - cookie：Cookie是Web服务器发送给客户端的一小段信息，客户端请求时可以读取该信息发送到服务器端，进而进行用户的识别。对于客户端的每次请求，服务器都会将Cookie发送到客户端,在客户端可以进行保存,以便下次使用。 
+    - session：每一个用户都有一个不同的session，各个用户之间是不能共享的，是每个用户所独享的，在session中可以存放信息。在服务器端会创建一个session对象，产生一个sessionID来标识这个session对象，然后将这个sessionID放入到Cookie中发送到客户端，下一次访问时，sessionID会发送到服务器，在服务器端进行识别不同的用户。
+6. 指导原则：
+    - 如果能用`volatile`来代替`synchronized`，尽可能使用`volatile`。因为被`synchronized`修饰的方法或代码块在同一时间值允许一个线程访问，而`volatile`没有这个限制。由于`volatile`无法保证原子操作，因此在多线程的情况下，只有对变量的操作为原子操作的情况下才可以使用`volatile`。
+    - 能使用`synchronized`代码块则尽量不要使用`synchronized`方法，并尽可能的减少`synchronized`代码块中的代码，只把临界区对的代码放在块中。
+    - 尽可能使用Concurrent容器，这些容器的锁粒度更小。
+    - 尽可能给每个线程定义一个名字，避免使用匿名线程。
+    - 使用线程池来控制多线程的执行。
 
 ### 数据库设计题目
 
@@ -736,6 +741,12 @@ public class JVMRuntime {
 课程表`course(c_id, c_name);`
 成绩表`score(stu_id, c_id, score);`
 
-1. 写出想学生表中插入一条数据的SQL语句。
+1. 写出向学生表中插入一条数据的SQL语句。
 2. 查询名字为James的学生所选的课程。
 3. 查询`stu_id`为4的学生所学课程的成绩。
+
+**解答：**
+
+1. 假设`stu_id`是该表的主键，且具有自增属性。`INSERT INTO student (stu_name) VALUES ("Tavish");`
+2. `SELECT c.c_name FROM (course c INNER JOIN score sc ON c.c_id = sc.c_id) INNER JOIN student st ON sc.stu_id = st.stu_id WHERE st.stu_name = "James";`
+3. `SELECT sc.score FROM score sc INNER JOIN student st ON sc.stu_id = st.stu_id WHERE st.stu_id = 4;`

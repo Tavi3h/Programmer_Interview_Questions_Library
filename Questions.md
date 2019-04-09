@@ -205,7 +205,7 @@ public class ObserverPattern {
 
 **解答：**
 
-1. `List<? extends T>`只能读数据，不能存数据。`List<? super T>`可以存入数据，存入数据需要是类型`T`或者其子类类型。读取时只能使用`Object`类型进行接收。PECS原则：生产者（Producer）使用extends，消费者（Consumer）使用super。即频繁往外读取内容的，适合用上界Extends，经常往里插入的，适合用下界Super。
+1. `List<? extends T>`只能读数据，不能存数据。`List<? super T>`可以存入数据，存入数据需要是类型`T`或者其子类类型。读取时只能使用`Object`类型进行接收。PECS原则：生产者（Producer）使用`extends`，消费者（Consumer）使用`super`。即频繁往外读取内容的，适合用上界`extends`，经常往里插入的，适合用下界`super`。
 ```java
 public static <T> void copy(List<? super T> dest, List<? extends T> src) {
     for (int i = 0; i < src.size(); i++) {
@@ -1322,11 +1322,10 @@ Socket的生命周期可以分为三个阶段：打开Socket、使用Socket收�
     - 持久性：持久性也被称为永久性。事务完成后，DBMS保证它对数据库中的数据的修改是永久性的，当系统或介质发生故障时，该修改也永久保持。持久性一般通过数据库备份与恢复来保证。
 严格来讲，数据库事务属性都是由数据库管理系统来进行保证的。
 9. 在Java语言中，可以使用`stop()`方法与`suspend()`方法来终止线程的执行。当使用`Thread.stop()`方法来终止线程时，它会释放已经锁定的所有的监视资源。如果当前任何一个受这些监视资源保护的对象处于一个不一致的状态，其他的线程将会看到这个不一致的状态，这可能会导致程序执行的不确定性，并且这种问题很难被定位。`suspend()`方法容易造成死锁，这是由于该方法不会释放锁。相反它会一直保持对锁的占有，一直到其他的线程调用`resume()`方法，它才能继续向下执行。假如有A，B两个线程，A线程在获得某个锁之后被`suspend()`阻塞，这时A不能继续执行，而线程B在获取相同的锁之后才能调用`resume()`方法将A唤醒，但是此时的锁被A占有，这导致B不能继续执行，也就不能及时的唤醒A，此时A，B两个线程都不能继续向下执行而形成了死锁。这就是`suspend()`被弃用的原因。
-
-
-
-
-
+10. 解答如下：
+```sql
+SELECT DISTINCT NAME FROM score s1 WHERE NOT EXISTS (SELECT * FROM score s2 WHERE s1.name = s2.name AND s2.mark <= 75); 
+```
 
 ### 编程题
 

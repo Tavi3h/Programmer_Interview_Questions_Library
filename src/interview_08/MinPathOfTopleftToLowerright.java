@@ -1,4 +1,4 @@
-package interview_07;
+package interview_08;
 
 // 寻找一条从左上角（`arr[0][0]`）到右下角（`arr[m-1][n-1]`）的路线，使得沿途经过的数组中的整数之和最小。每次只能向右走或向下走。
 public class MinPathOfTopleftToLowerright {

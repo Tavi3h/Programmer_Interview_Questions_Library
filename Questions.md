@@ -1429,16 +1429,16 @@ public static int getMinPathDP(int[][] arr) {
 
 **问题：**
 
-1. 实现对一组无需的字母进行从小到大排序（区分大小写），当两个字母相同时，小写字母放在大写字母前，要求时间复杂度为O(n)。
-2. 猿媛之家有个传统，就是每个月都要组织专家与顾问进行一次团建活动，每个专家或顾问都可以带家属参加。活动内容除了吃喝玩乐之外，还要做些互动的游戏，需要从专家或顾问中随机选出几名组成一队来完成游戏。一次团建活动中共20个人参见，已知如果随机选取3位专家或顾问以及该3位专家或顾问的家属，一共有220种组合。请问如果每次随机选取4个专家或顾问及4位专家或顾问的家属，会有多少种组合？
+1. 实现对一组无序的字母进行从小到大排序（区分大小写），当两个字母相同时，小写字母放在大写字母前，要求时间复杂度为O(n)。
+2. 猿媛之家有个传统，就是每个月都要组织专家与顾问进行一次团建活动，每个专家或顾问都可以带家属参加。活动内容除了吃喝玩乐之外，还要做些互动的游戏，需要从专家或顾问中随机选出几名组成一队来完成游戏。一次团建活动中共20个人参加，已知如果随机选取3位专家或顾问以及该3位专家或顾问的家属，一共有220种组合。请问如果每次随机选取4个专家或顾问及4位专家或顾问的家属，会有多少种组合？
 3. 有N个磁盘，每个磁盘大小为D[i]，现在要在这N个磁盘上“顺序分配”M个分区，每个分区大小为P[j]，顺序分配的意思是：分配一个分区P[j]时，如果当前磁盘剩余空间足够，则在当前磁盘分配；如果不够，则尝试下一个磁盘，知道找到一个磁盘D[i + k]可以容纳该分区，分配下一个分区P[j + 1]时，则从当前磁盘D[i + k]的剩余空间开始分配，不再使用之前磁盘未分配的空间，如果这M个分区不能在这N个磁盘完全分配，则认为分配失败。请实现函数`is_allocable()`判断给定N个磁盘（数组D）和M个分区（数组P）是否会出现分配失败的情况？距离：磁盘为[120， 120， 120]，分区为[60, 60, 80, 20, 80]可分配，如果为[60, 80, 80, 20, 80]，则分配失败。
 4. 请实现方法：`print_rotate_matrix(int[][] matrix)`，该方法用于将一个n×n的二维数组逆时针旋转45°后打印，例如，下图显示一个3×3的二维数组及其旋转后屏幕输出的效果。
 ```text
                     3           3
-1   2   3        2     6        2  6    
+1   2   3        2     6        2  6
 4   5   6  ->  1    5    9  ->  1  5  9
 7   8   9        4     8        4  8
-                    7           7 
+                    7           7
 ```
 5. 给定正整数x，定义函数$A(N)=1+x+x^2+x^3+...+x^n$（n为整数且大于等于0），已知乘运算的时间远大于加运算，输入x、n，如何尽可能快地求出$A(N)$？
 6. 请用两个队列实现栈的先进后出操作，希望该栈的`push()/pop()`时间复杂度尽量小。请写出`push()/pop()`的代码。
@@ -1447,3 +1447,128 @@ public static int getMinPathDP(int[][] arr) {
 
 **解答：**
 
+1. 解答如下，：
+```java
+public char[] charSort(char[] chars) {
+    int[] lcCount = new int[26], ucCount = new int[26];
+    for (char c : chars) {
+        if (c >= 97 && c <= 122) {
+            ++lcCount[c - 'a'];
+        } else {
+            ++ucCount[c - 'A'];
+        }
+    }
+    char[] res = new char[chars.length];
+    int resIdx = 0;
+    for (int i = 0; i < lcCount.length; i++) {
+        if (lcCount[i] != 0) {
+            for (int j = 0; j < lcCount[i]; j++) {
+                res[resIdx++] = (char) (i + 'a');
+            }
+        }
+    }
+
+    for (int i = 0; i < ucCount.length; i++) {
+        if (ucCount[i] != 0) {
+            for (int j = 0; j < ucCount[i]; j++) {
+                res[resIdx++] = (char) (i + 'A');
+            }
+        }
+    }
+    return res;
+}
+
+@Test
+public void testCase() {
+    char[] chars = { 'a', 'b', 'e', 'e', 'e', 'Z', 'E', 'D', 'C', 'd', 'v', 'a', 'x', 'o' };
+    System.out.println(Arrays.toString(charSort(chars)));
+}
+// output: [a, a, b, d, e, e, e, o, v, x, C, D, E, Z]
+```
+2. 本题考查排列组合。
+由于参加活动的每个员工的家属是确定了，一旦员工选好了，家属也就确定了。因此，本题只需要考虑选出指定员工个数的组合就可以了。这里假设20个人中有n个是员工，其余是家属，则有${C_n}^3=220$，解得$n=12$，则有12名员工和8名家属。现在要取4个员工，则有${C_{12}}^4=495$种。
+3. 解答如下：
+```java
+public boolean is_allocable(int[] disk, int[] partition) {
+    int i = 0, j = 0;
+    while (i < disk.length && j < partition.length) {
+        int size = disk[i++];
+        while (partition[j] <= size) {
+            size -= partition[j++];
+            if (j == partition.length) {
+                return true;
+            }
+        }
+    }
+    return false;
+}
+
+@Test
+public void testCase() {
+    int[] disk1 = { 120, 120, 120 };
+    int[] disk2 = { 120, 50 };
+    int[] disk3 = { 20, 100, 120 };
+    int[] disk4 = { 1200 };
+    int[] partition1 = { 60, 60, 80, 20, 20 };
+    int[] partition2 = { 60, 80, 80, 20, 80 };
+    int[] partition3 = { 110, 20 };
+    int[] partition4 = { 100, 200, 300, 400, 100, 50, 60 };
+    int[] partition5 = { 100, 200, 300, 400, 100, 50, 50 };
+    assertEquals(true, is_allocable(disk1, partition1));
+    assertEquals(false, is_allocable(disk1, partition2));
+    assertEquals(true, is_allocable(disk2, partition3));
+    assertEquals(false, is_allocable(disk3, partition3));
+    assertEquals(false, is_allocable(disk4, partition4));
+    assertEquals(true, is_allocable(disk4, partition5));
+}
+// 测试通过。
+```
+4. 答案如下：
+```java
+public void rotate(int[][] matrix) {
+    int len = matrix.length;
+
+    for (int i = len - 1; i > 0; i--) {
+        int row = 0, col = i;
+        while (col < len) {
+            System.out.print(matrix[row++][col++] + " ");
+        }
+        System.out.println();
+    }
+
+    for (int i = 0; i < len; i++) {
+        int row = i, col = 0;
+        while (row < len) {
+            System.out.print(matrix[row++][col++] + " ");
+        }
+        System.out.println();
+    }
+}
+
+@Test
+public void testCase() {
+    int[][] matrix = {
+            {1, 2, 3, 10},
+            {4, 5, 6, 11},
+            {7, 8, 9, 12},
+            {13, 14, 15, 16}
+    };
+    rotate(matrix);
+}
+/*
+output : 
+10 
+3 11 
+2 6 12 
+1 5 9 16 
+4 8 15 
+7 14 
+13
+*/
+```
+5. 解答如下：
+
+- 第一种思路：由公式可知，当$x=1$时，求和公式为$S(x,n)=n+1$；当$x\neq 1$时，求和公式为$S(x,n)=x^{n+1}/{x-1}$。对于$x^{n+1}$的计算则使用快速幂方法。
+- 第二种思路：
+    + 当n为奇数时，首先计算$1+x$的值，并将其存入一个临时变量`tmp`中，然后用这个值乘上$x^2$，就可以得到$x^2+x^3$，将该值存入`tmp`，再乘以$x^2$就可以得到$x^4+x^5$，以此类推就可以得到所有项的值。在这个过程中使用一个变量`sum`进行累加即可。
+    + 当n为偶数时， 

@@ -1442,7 +1442,7 @@ public static int getMinPathDP(int[][] arr) {
 ```
 5. 给定正整数x，定义函数$A(N)=1+x+x^2+x^3+...+x^n$（n为整数且大于等于0），已知乘运算的时间远大于加运算，输入x、n，如何尽可能快地求出$A(N)$？
 6. 请用两个队列实现栈的先进后出操作，希望该栈的`push()/pop()`时间复杂度尽量小。请写出`push()/pop()`的代码。
-7. 假设有一个中央调度机，有n个相同的任务需要调度到m台服务器上去执行，由于每台服务器配置不一样，因此，服务器执行一个任务所花费的时间也不同。现在假设第i个服务器执行一个任务需要的时间为t[i]。例如，有2个执行机a与b，执行一个任务分别需要7min和10min，有6个任务待调度。如果平分这6个任务，即a与b各3个任务，则最短需要30min执行完所有任务。如果a分4个任务，b分2个任务，则最短28min执行完。请设计调度算法`int estimate_process_time(int[] t, int m, int n)`，使得所有任务完成所需要的时间最短。输入m台服务器，每台机器处理一个任务的时间为t[i]，完成n个任务，输出n个任务在m台服务器的分布。
+7. 假设有一个中央调度机，有n个相同的任务需要调度到m台服务器上去执行，由于每台服务器配置不一样，因此，服务器执行一个任务所花费的时间也不同。现在假设第i个服务器执行一个任务需要的时间为t[i]。例如，有2个执行机a与b，执行一个任务分别需要7min和10min，有6个任务待调度。如果平分这6个任务，即a与b各3个任务，则最短需要30min执行完所有任务。如果a分4个任务，b分2个任务，则最短28min执行完。请设计调度算法`int estimate_process_time(int[] t, int n)`，使得所有任务完成所需要的时间最短。输入m台服务器，每台机器处理一个任务的时间为t[i]，完成n个任务，输出n个任务在m台服务器的分布。
 8. n(1,2,3,...,n)个元素有$N!$个不同的排列，将这个$N!$个不同的排列按字典序排列，并编号为0，1，2，...，$N!-1$，每个编号为其字典序的值，如n=3时，字典排序为123，132，213，231，312，321，这6个数的字典序分别为0，1，2，3，4，5。现给定n，请输出字典序为k的排列。
 
 **解答：**
@@ -1570,5 +1570,128 @@ output :
 
 - 第一种思路：由公式可知，当$x=1$时，求和公式为$S(x,n)=n+1$；当$x\neq 1$时，求和公式为$S(x,n)=x^{n+1}/{x-1}$。对于$x^{n+1}$的计算则使用快速幂方法。
 - 第二种思路：
-    + 当n为奇数时，首先计算$1+x$的值，并将其存入一个临时变量`tmp`中，然后用这个值乘上$x^2$，就可以得到$x^2+x^3$，将该值存入`tmp`，再乘以$x^2$就可以得到$x^4+x^5$，以此类推就可以得到所有项的值。在这个过程中使用一个变量`sum`进行累加即可。
-    + 当n为偶数时， 
+    + 计算$x^2$，并使用变量`xPower`记录。当n为奇数时，首先计算$1+x$的值，并将其存入一个临时变量`tmp`中，然后用这个值乘上$x^2$，就可以得到$x^2+x^3$，将该值存入`tmp`，再乘以$x^2$就可以得到$x^4+x^5$，以此类推就可以得到所有项的值。在这个过程中使用变量`sum`进行累加即可。
+    + 计算$x^2$，并使用变量`xPower`记录。当n为偶数时， 先计算$x+x^2$的值，并将其存入一个临时变量`tmp`中，然后用这个值乘上$x^2$后，就可以得到$x^3+x^4$，将该值存入`tmp`，再乘以$x^2$就可以得到$x^5+x^6$，以此类推就可以得到所有项的值。在这个过程中使用变量`sum`进行累加，在最后再加上1即可。
+6. 解答如下：
+```java
+public class Stack<T> {
+    
+    // queue1提供压栈功能，queue2提供弹栈功能。
+    private Queue<T> queue1 = new LinkedList<>();
+    private Queue<T> queue2 = new LinkedList<>();
+    
+    public void push(T t) {
+        queue1.add(t);
+    }
+    
+    public T pop() {
+        if (queue1.isEmpty()) {
+            return null;
+        } else if (queue1.size() == 1) {
+            return queue1.poll();
+        } else {
+            while (queue1.size() > 1) {
+                queue2.add(queue1.poll());
+            }
+            T res = queue1.poll();
+            while (!queue2.isEmpty()) {
+                queue1.add(queue2.poll());
+            }
+            return res;
+        }
+    }
+    
+    public boolean isEmpty() {
+        return queue1.isEmpty();
+    }
+    
+    @Test
+    public void testCase() {
+        Stack<Integer> stack = new Stack<>();
+        stack.push(1);
+        stack.push(2);
+        stack.push(3);
+        stack.push(4);
+        System.out.println(stack.pop()); // 4
+        System.out.println(stack.pop()); // 3
+        System.out.println(stack.pop()); // 2
+        System.out.println(stack.pop()); // 1
+        assertEquals(null, stack.pop()); // 通过
+    }
+}
+```
+7. 本题使用贪心算法，策略为在为新的任务选择服务器时，选择服务器当前需要处理已分配任务的总时间+该任务需要的时间和最小的服务器。代码如下：
+```java
+public int[] estimate_process_time(int[] t, int n) {
+    int[] processTime = new int[t.length];
+    for (int i = 0; i < n; i++) {
+        int minTime = processTime[0] + t[0];
+        int minIndex = 0;
+        for (int j = 1; j < t.length; j++) {
+            if (minTime > processTime[j] + t[j]) {
+                minTime = processTime[j] + t[j];
+                minIndex = j;
+            }
+        }
+        processTime[minIndex] += t[minIndex];
+    }
+
+    int totalTime = 0;
+    for (int i = 0; i < processTime.length; i++) {
+        System.out.println("第" + i + "个服务器上任务数为：" + processTime[i] / t[i]);
+        totalTime = Math.max(totalTime, processTime[i]);
+    }
+    System.out.println("总耗时为：" + totalTime);
+    return processTime;
+}
+
+@Test
+public void testCase() {
+    int[] t = { 5, 2, 4, 10 };
+    estimate_process_time(t, 6);
+}
+/*
+output: 
+
+第0个服务器上任务数为：1
+第1个服务器上任务数为：4
+第2个服务器上任务数为：1
+第3个服务器上任务数为：0
+总耗时为：8
+*/
+```
+8. 代码如下：
+```java
+public String getPermutation(int n, int k) {
+    int i = 0, j = 0;
+    boolean[] isUsed = new boolean[n];
+    int[] data = new int[n];
+    data[0] = 1;
+    for (i = 1; i < n; i++) {
+        data[i] = data[i - 1] * i;
+    }
+    --k;
+    StringBuilder result = new StringBuilder();
+    while (--i >= 0) {
+        int rank = k / data[i];
+        for (j = 0; j <= rank; j++) {
+            if (isUsed[j]) {
+                rank++;
+            }
+        }
+        isUsed[rank] = true;
+        result.append(j);
+        k = k % data[i];
+    }
+    return result.toString();
+}
+
+@Test
+public void testCase() {
+    assertEquals("213", getPermutation(3, 3));
+    assertEquals("321", getPermutation(3, 6));
+    assertEquals("312", getPermutation(3, 5));
+}
+```
+
+## 真题十

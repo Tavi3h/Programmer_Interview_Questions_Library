@@ -1692,3 +1692,158 @@ public void testCase() {
 ```
 
 ## 真题十
+
+### 简答题
+
+**问题：**
+
+1. 下面程序的运行结果是什么？
+```java
+class Base {
+    public Base() {
+        System.out.println("Base");
+    }
+    {
+        System.out.println("I'm Base class");
+    }
+    static {
+        System.out.println("static Base");
+    }
+}
+
+public class Sub extends Base {
+    public Sub() {
+        System.out.println("Sub");
+    }
+    {
+        System.out.println("I'm Sub class");
+    }
+    static {
+        System.out.println("static Sub");
+    }
+    public static void main(String[] args) {
+        new Sub();
+    }
+}
+```
+
+**解答：**
+
+1. 答案如下：
+Java程序初始化工作可以在许多不同的代码块中完成，它们执行的顺序如下：父类静态变量、父类静态代码块、子类静态变量、子类静态代码块、父类非静态变量、父类非静态代码块、父类构造函数、子类非静态变量、子类非静态代码块、子类构造函数。
+```text
+static Base     // 父类静态代码块
+static Sub      // 子类静态代码块
+I'm Base class  // 父类非静态代码块
+Base            // 父类构造函数
+I'm Sub class   // 子类非静态代码块
+Sub             // 子类构造函数
+```
+
+### 系统设计题
+
+**问题：**
+
+微博中的url往往很长，发送前要转化为tinyurl。
+
+1. url如何转为tinyurl编码。
+2. 如果用户输入一个已经转换过的url，如何快速定位到已经生成了的tinyurl？
+3. 如果数据为10亿条，需要10个tinyurl服务器，如何设计？
+
+**解答：**
+
+1. 需要将url转为tinyurl编码，可以采用以下思路：首先将url转换成int值，然后采用字母与数字的组合进行编码。由于a~z、A~Z及0~9共有62个字符，因此，可以通过把int值再转换为62进制的编码。如果用n位字符进行编码，可以表示的url数为$62^n$。假如采用6位字符编码，可以表示的url数为$62^6$。在实际使用时可以根据url的数量选用合适的n。把int值转换为62进制的编码是比较容易的，因此，本题的难点是怎样把url转换为int值，可以采用Hash函数（必须要处理Hash冲突的情况）。比较简单的方法是采用数据库主键自增的原理，每有url需要被转换的时候，通过数据库逐渐自增的方式产生url对应的主键，每个整型变量对应这一个62进制的tinyurl。数据库表中其中一列是主键，另一列存储url。
+2. 当用户输入一个已经转换过的url时，如何快速定位到已经生成了的tinyurl呢？方法也很简单，这个转换过的url一定是62进制的字符串，首先把这个62进制的字符串转换成对应的整数值，这个值就对应数据库里的一个主键，然后通过这个主键就可以很容易地在数据库中找到对应的url。
+3. 如果数据为10亿条则需要10个tinyurl服务器。如果输入一个转换过的url，则采用主键的方式，主键是自增的，因此分布也是均匀的，故可以通过轮询的方式把请求均匀地分布在10个服务器上，并在10个服务器之前加上负载均衡，根据进制压缩的结果将请求转发到相应的服务器，每个服务器中有独立的cache，后端公用数据库。
+
+## 真题十一
+
+### 简答题
+
+**问题：**
+
+1. fail-fast和fail-safe迭代器的区别是什么？
+2. 对于一些敏感的数据（例如密码），为什么使用字符数组存储比使用`String`更安全？
+3. 如何捕获一个线程抛出的异常？
+4. 一个人存在于社区中，会有各种各样的身份，和不同的人相处会有不同的关系。请自行设计数据库（表结构，个数不限），保存一个人的名字、关系（包括父亲、朋友们），并使用尽可能少的时间空间开销组织好每个人和其他人的关系，组织好后尝试取出一个人的关系结构，其中涉及的SQL语句请详细写出，涉及的数据结构、数据组织形成也请描述清楚，代码可以用伪代码或你熟悉的任何代码给出。
+5. 段页式虚拟存储管理方案的特点是什么？
+
+**解答：**
+
+1. 它们的主要区别是fail-safe允许在遍历的过程中对容器中的数据进行修改，而fail-fast则不允许。
+    - fail-fast：直接在容器上进行遍历，在遍历的过程中，一旦发现容器中的数据被修改了（添加元素、删除元素或修改元素），会立刻抛出`ConcurrentModificationException`异常导致遍历失败。常见的使用fail-fast方式的容器有`HashMap`和`ArrayList`等。
+    - fail-safe：这种遍历基于容器的一个克隆。因此，对容器中内容的修改不影响遍历。常见的使用fail-safe方式遍历的容器有`ConcurrentHashMap`和`CopyOnWriteArrayList`。
+2. 在Java语言中，`String`是不可变类，它被存储在字符串常量池中，从而实现了字符串的共享，减少了内存的开支。正因为如此，一旦一个`String`类型的字符串被创建出来，这个字符串就会存在于常量池中知道被垃圾回收器回收为止。因此，即使这个字符串（例如密码）不再被使用，它仍然会在内存中存在一段时间（只有垃圾回收器才会回收这块内容，程序员没有办法直接回收字符串）。此时有权限访问memory dump的程序都可能会访问到这个字符串，从而把敏感的数据暴露出去，这是一个非常大的安全隐患。如果使用字符数组，一旦程序不再使用这个数据，程序员就可以把字符数组的内容设置为空，此时这个数据在内存中就不存在了。从以上分析可以看出，与使用`String`相比，使用字符数组，程序员对数据的生命周期有更好的控制，从而可以增强安全性。
+3. 可以使用`UncaughtExceptionHandler`来捕获线程抛出的异常。
+4. 使用三个表来存储三类信息：用户信息、关系信息以及用户之间的关系信息。
+    - 用户表：存储用户基本信息。
+    ```sql
+    CREATE TABLE `user_info` (
+      `user_id` int(11) NOT NULL AUTO_INCREMENT,
+      `user_name` varchar(30) DEFAULT NULL,
+      `user_age` int(11) DEFAULT NULL,
+      PRIMARY KEY (`user_id`)
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8
+    ```
+    - 用户关系定义表：存储用户之间所有可能的关系。
+    ```sql
+    CREATE TABLE `relation_define` (
+      `relation_id` int(11) NOT NULL AUTO_INCREMENT,
+      `relation_name` varchar(32) DEFAULT NULL,
+      PRIMARY KEY (`relation_id`)
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8
+    ```
+    - 用户关系信息表：存储用户关系信息。
+    ```sql
+    CREATE TABLE `user_relation` (
+      `user_id` int(11) DEFAULT NULL,
+      `rel_user_id` int(11) DEFAULT NULL,
+      `relation_id` int(11) DEFAULT NULL
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8
+    ```
+
+    示例：
+
+    用户表如下：
+
+    user_id|user_name|user_age
+    -----|-----|-----
+    1|James|18
+    2|Ross|25
+    3|Jack|50
+
+    用户关系定义表如下：
+
+    relation_id|relation_name
+    -----|-----
+    1|同事
+    2|父子
+    3|朋友
+
+    用户关系信息表如下：
+
+    user_id|rel_user_id|relation_id
+    -----|-----|-----
+    1|2|1
+    2|3|2
+    1|3|3
+
+    现在查询用户1（James）的社会关系：
+
+    ```sql
+    SELECT a.user_name, b.relation_name FROM user_info a, relation_define b, 
+    (SELECT user_id, relation_id FROM user_relation WHERE rel_user_id = 1 
+    UNION
+    SELECT rel_user_id user_id, relation_id FROM user_relation WHERE user_id = 1
+    ) c
+    WHERE a.user_id = c.user_id AND b.relation_id = c.relation_id;
+    ```
+
+    结果：
+
+    user_name|relation_name
+    -----|-----
+    Ross|同事
+    Jack|朋友
+
+5. 页式存储分配是把到来的作业分成相等大小的页，段式存储管理是指把一个程序分成若干个段（Segment）进行存储，每个段都是一个逻辑实体（Logical Entity）。段页式虚拟存储管理是基本分段存储管理方式和基本分页存储管理方式原理的结合，兼有段式和页式管理的优点，即先将用户程序分成若干个段，再把每个段分成若干个页，并为每一个段赋予内存。它的特点是空间浪费小、存储共享容易、存储保护容易以及能动态连接；段页式管理采用二维地址空间，如段号（S）、页号（P）和页内单元号（D）。系统建两张表盒每一作业一张段表，每一段建立一张页表，段表指出该段的页表在内存中的位置，地址变换机构类似页式机制，只是前面增加一项段号。所以，段页式管理存储共享容易、存储保护容易。

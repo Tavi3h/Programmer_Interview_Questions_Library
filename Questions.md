@@ -1846,4 +1846,151 @@ Sub             // 子类构造函数
     Ross|同事
     Jack|朋友
 
-5. 页式存储分配是把到来的作业分成相等大小的页，段式存储管理是指把一个程序分成若干个段（Segment）进行存储，每个段都是一个逻辑实体（Logical Entity）。段页式虚拟存储管理是基本分段存储管理方式和基本分页存储管理方式原理的结合，兼有段式和页式管理的优点，即先将用户程序分成若干个段，再把每个段分成若干个页，并为每一个段赋予内存。它的特点是空间浪费小、存储共享容易、存储保护容易以及能动态连接；段页式管理采用二维地址空间，如段号（S）、页号（P）和页内单元号（D）。系统建两张表盒每一作业一张段表，每一段建立一张页表，段表指出该段的页表在内存中的位置，地址变换机构类似页式机制，只是前面增加一项段号。所以，段页式管理存储共享容易、存储保护容易。
+5. 页式存储分配是把到来的作业分成相等大小的页，段式存储管理是指把一个程序分成若干个段（Segment）进行存储，每个段都是一个逻辑实体（Logical Entity）。段页式虚拟存储管理是基本分段存储管理方式和基本分页存储管理方式原理的结合，兼有段式和页式管理的优点，即先将用户程序分成若干个段，再把每个段分成若干个页，并为每一个段赋予内存。它的特点是空间浪费小、存储共享容易、存储保护容易以及能动态连接；段页式管理采用二维地址空间，如段号（S）、页号（P）和页内单元号（D）。系统建两张表格每一作业一张段表，每一段建立一张页表，段表指出该段的页表在内存中的位置，地址变换机构类似页式机制，只是前面增加一项段号。所以，段页式管理存储共享容易、存储保护容易。
+
+## 真题十二
+
+### 写出下面程序的运行结果
+
+**问题：**
+
+1. 代码如下：
+```java
+public class Test {
+
+    public static void main(String[] args) {
+        String str1 = "Hello";
+        String str2 = "world";
+        System.out.println(new Str(str1, str2));
+        System.out.println(str2);
+    }
+
+}
+
+class Str {
+
+    String s1;
+    String s2;
+
+    Str(String str1, String str2) {
+        s1 = str1;
+        s2 = str2;
+        str2 += str1;
+    }
+
+    @Override
+    public String toString() {
+        return s1 + s2;
+    }
+}
+```
+2. 代码如下：
+```java
+public class Ex {
+
+    @SuppressWarnings("unused")
+    public static void main(String[] args) {
+        Fx f = new Fx(5);
+    }
+
+    Ex() {
+        System.out.println("Ex,no-args");
+    }
+
+    Ex(int i) {
+        System.out.println("Ex,int");
+    }
+}
+
+class Fx extends Ex {
+
+    Fx() {
+        super();
+        System.out.println("Fx,no-args");
+    }
+
+    Fx(int i) {
+        this();
+        System.out.println("Fx,int");
+    }
+}
+```
+
+**解答：**
+
+1. 答案如下：
+```text
+Helloworld
+world
+```
+2. 答案如下：
+```text
+Ex,no-args
+Fx,no-args
+Fx,int
+```
+
+## 真题十三
+
+### 简答题
+
+**问题：**
+
+1. 简要介绍对Struts的体系结构的理解。
+2. XML包括哪些解析技术？它们有什么区别？
+3. JSP有哪些内置对象和动作？
+4. `SELECT * FROM TABLE`和`SELECT * FROM TABLE WHERE NAME LINKE '%%' AND ADDR LINKE '%%' AND (1_ADDR LIKE '%%' OR 2_ADDR LIKE '%%' OR 3_ADDR LIKE '%%' OR 4_ADDR LIKE '%%')`的检索结果为何不同？
+5. 定义有表结构如下所示：
+    - （1）表名：g_cardapply
+    
+        字段名|类型|长度|说明
+        ------|-----|-----|-----
+        g_applyno | varchar | 8 | 申请单号（关键字）
+        g_applydate | bigint | 8 | 申请日期
+        g_state | varchar | 2 | 申请状态
+
+    - （2）表名：g_cardapplydetail
+
+        字段名|类型|长度|说明
+        -----|-----|-----|-----
+        g_applyno | varchar | 8 | 申请单号（关键字）
+        g_name | varchar | 30 | 申请人姓名
+        g_idcard | varchar | 18 | 申请人身份证号
+        g_state | varchar | 2 | 申请状态
+
+其中，两个表的关联字段为申请单号。题目如下：
+- （1）查询身份证号码为612301430103082的申请日期。
+- （2）查询同一个身份证号码有两条以上记录的身份证号码及记录个数。
+- （3）将身份证号码为612301430103082的记录在两个表中的申请状态均改为15。 
+- （4）删除`g_cardapplydetail`表中所有姓张的记录。
+
+**解答：**
+
+1. struts1的内容参照原书P295。
+2. 参见真题八问答题第七题答案。
+3. JSP内置对象和内置动作如下：
+    - 内置对象：
+        + `request`
+        + `response`
+        + `pageContext`
+        + `session`
+        + `application`
+        + `out`
+        + `config`
+        + `page`
+        + `exception`
+    - 内置动作：
+        + `jsp:include`
+        + `jsp:useBean`
+        + `jsp:setProperty`
+        + `jsp:getProperty`
+        + `jsp:forward`
+        + `jsp:plugin`
+4. `%%`可以匹配所有的内容，但是不能匹配`null`，例如当`NAME`字段的值为`null`时，第一种写法可以将其查询出来，但是第二种写法不能。
+5. 答案如下：
+    - （1）`SELECT a.g_applydate FROM g_cardapply a INNER JOIN g_cardapplydetail b ON a.g_applyno = b.g_applyno WHERE b.g_idcard = '612301430103082';`
+    - （2）`SELECT g_idcard, COUNT(g_idcard) AS num FROM g_cardapplydetail GROUP BY g_idcard HAVING num > 1;`
+    - （3）分别更新两张表：
+        + `UPDATE g_cardapplydetail SET g_state = '15' WHERE g_idcard = '612301430103082';`
+        + `UPDATE g_cardapply SET g_state = '15' WHERE g_applyno IN (SELECT g_applyno FROM g_cardapplydetail WHERE g_idcard = '612301430103082');`
+    - （4）`DELETE FROM g_cardapplydetail WHERE g_name LIKE '张%';`

@@ -1783,7 +1783,7 @@ Sub             // 子类构造函数
       `user_name` varchar(30) DEFAULT NULL,
       `user_age` int(11) DEFAULT NULL,
       PRIMARY KEY (`user_id`)
-    ) ENGINE=InnoDB DEFAULT CHARSET=utf8
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4
     ```
     - 用户关系定义表：存储用户之间所有可能的关系。
     ```sql
@@ -1791,7 +1791,7 @@ Sub             // 子类构造函数
       `relation_id` int(11) NOT NULL AUTO_INCREMENT,
       `relation_name` varchar(32) DEFAULT NULL,
       PRIMARY KEY (`relation_id`)
-    ) ENGINE=InnoDB DEFAULT CHARSET=utf8
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4
     ```
     - 用户关系信息表：存储用户关系信息。
     ```sql
@@ -1799,7 +1799,7 @@ Sub             // 子类构造函数
       `user_id` int(11) DEFAULT NULL,
       `rel_user_id` int(11) DEFAULT NULL,
       `relation_id` int(11) DEFAULT NULL
-    ) ENGINE=InnoDB DEFAULT CHARSET=utf8
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4
     ```
 
     示例：
@@ -1994,3 +1994,126 @@ Fx,int
         + `UPDATE g_cardapplydetail SET g_state = '15' WHERE g_idcard = '612301430103082';`
         + `UPDATE g_cardapply SET g_state = '15' WHERE g_applyno IN (SELECT g_applyno FROM g_cardapplydetail WHERE g_idcard = '612301430103082');`
     - （4）`DELETE FROM g_cardapplydetail WHERE g_name LIKE '张%';`
+
+## 真题十四
+
+### 简答题
+
+**问题：**
+
+1. Java语言具有哪些特点？
+2. 下面这段代码在一些特定的情况下有问题，请指出并改正。
+```java
+import java.util.List;
+import java.util.ArrayList;
+public class MyStack {
+    private List<String> stack = new ArrayList<String>();
+    public synchronized void push(String value) {
+        synchronized(this) {
+            stack.add(value);
+            notify();
+        }
+    }
+
+    public synchronized String pop() throws InterruptedException {
+        synchronized(this) {
+            if (stack.size() <= 0) {
+                wait();
+            }
+            return stack.remove(stack.size() - 1);
+        }
+    }
+}
+```
+3. 下面代码输出的结果是？
+```java
+class Base {
+
+    int num = 1;
+    public Base() {
+        this.print();
+        num = 2;
+    }
+
+    public void print() {
+        System.out.println("Base.num = " + num);
+    }
+}
+
+class Sub extends Base {
+
+    int num = 3;
+
+    public Sub() {
+        this.print();
+        num = 4;
+    }
+
+    public void print() {
+        System.out.println("Sub.num = " + num);
+    }
+}
+
+public class Test {
+    public static void main(String[] args) {
+        Base b = new Sub();
+        System.out.println(b.num);
+    }
+}
+```
+4. 请给出你最熟悉的三个设计模式的类图。
+5. 如何能使JVM的堆、栈和持久代（perm）发生内存溢出？
+6. JDBC事务隔离级别有几种？
+7. 在Hashtable、Vector、TreeSet和LinkedList中，哪个容器是线程安全的？
+8. Web服务器与Web应用服务器有什么区别？
+
+**解答：**
+
+1. Java语言具有以下几个方面的优点：
+    - Java为纯面向对象的语言。
+    - Java具有平台无关性，一次编译，到处运行。
+    - Java提供了很多内置的类库，这些类库简化了开发人员的程序设计工作，同时缩短了项目的开发时间。
+    - Java语言提供了对Web应用开发的支持。
+    - Java语言具有较好的安全性和健壮性。
+    - Java语言去除了C++语言中难以理解、容易混淆的特性。
+2. 题中这段代码在大部分情况下都能正常运行，但在以下场景中会出现问题：
+    - （1）线程1先执行`pop()`操作，此时，由于容器中没有元素，因此会调用`wait()`释放锁并等待唤醒。
+    - （2）线程2执行`push()`操作，向容器中添加一个元素，然后这个线程会调用`notify()`来唤醒线程1。
+    - （3）就在此时，恰好另外一个线程3也执行`pop()`操作，此时线程1和线程3的执行顺序是无法保证的。如果恰好线程3先执行了`pop()`操作，然后线程1被唤醒，此时线程1会执行`stack.remove(stack.size() - 1)`，但由于此时容器已经为空，所以`stack.size()`方法会返回0，这就将导致`ArrayIndexOutOfBoundsException`异常。
+
+    可以这样改进，在`pop()`方法的`return`前进行判断：`return stack.size() <= 0 ? null : stack.remove(stack.size() - 1);`
+
+3. 输出结果如下：
+```text
+Sub.num = 0
+Sub.num = 3
+2
+```
+由于子类可以覆盖父类的方法，因此，同样的方法会在父类与子类中有着不同的表现形式。在Java语言中，基类的引用变量不仅可以指向基类的实例对象，也可以指向其子类的实例对象。同样，接口的引用变量也可以指向其实现类的实例对象。而程序调用的方法在运行期才动态绑定（绑定指的是将一个方法调用和一个方法主体连接到一起），就是引用变量所指向的具体实例的方法，也就是内存里正在运行的那个对象的方法，而不是引用变量的类型中定义的方法。通过这种动态绑定的方法实现了多态。需要注意的是，只有方法有多态的概念，属性是没有多态的概念的。
+对于本题而言，在执行语句`Base b = new Sub()`时，父类的非静态变量`num`首先初始化为1，然后调用父类的构造方法，而在父类构造方法中调用`print()`方法。根据多态的特性，此时实例化的是`Sub`类，因此会调用`Sub`类的`print()`方法。由于此时该类中的初始化代码`int num = 3`还未执行，因此此时`num`的默认值为0，所以先输出`Sub.num = 0`。然后父类的`num`再次初始化为2。接下来在调用子类构造函数前，子类的非静态变量会得到初始化，所以此时`Sub`类的`num`初始化为3，因此子类的构造函数在调用`print()`时会输出`Sub.num = 3`。最后输出`b.num`，由于属性没有多态的概念，而`b`的类型是`Base`，因此会输出父类`Base`的`num`值：2。
+
+4. 观察者模式、适配器模式以及模板方法模式UML图如下：
+    ![ObserverPattern](img/ObserverPattern.jpg)
+    <center>观察者模式</center>
+    ![AdapterPattern](img/AdapterPattern.jpg)
+    <center>适配器模式</center>
+    ![TemplateMethodPattern](img/TemplateMethodPattern.jpg)
+    <center>模板方法模式</center>
+
+5. 本题考查对堆、栈和持久代的理解。
+
+    - 在Java语言中。通过`new`实例化的对象都存储在堆空间中，因此只要不断地用`new`创建对象且一直保持这些对象的引用，实例化足够多的对象的实例出来就会导致堆溢出。
+    - 在方法调用时，栈用来保存上下文的一些内容。由于栈的大小是有限的，所以当出现非常深层次的方法调用时，就会把栈的空间用完，最简单的栈溢出就是代码的无限递归调用。
+    - 当一个类被第一次访问时，JVM需要把类加载进来，而类加载器就会栈用持久代的空间来存储classes信息。所以当JVM需要加载一个新的类时，如果持久代中没有足够的空间，此时就会抛出`java.lang.OutOfMemoryError: PermGen space`异常。即当JVM加载了足够多的类时就有可能造成持久代溢出。
+    
+6. 在JDBC中定义了5种事务隔离级别：
+
+    + `TRANSACTION_NONE_JOB`：不支持事务。
+    + `TRANSACTION_READ_UNCOMMITTED`：未提交都。说明在提交前一个事务可以看到另一个事务的变化。这样读“脏”数据、不可重复读和“虚读”都是允许的。
+    + `TRANSACTION_READ_COMMITTED`：已提交读。说明读取未提交的数据是不允许的。这个级别仍然允许不可重复读和“虚读”。
+    + `TRANSACTION_REPEATABLE_READ`：可重复读。说明事务保证能够再次读取相同的数据而不会失败，但“虚读”仍然会出现。
+    + `TRANSACTION_SERIALIZABLE`：可序列化。这是最高级别的事务。可以防止读“脏”数据、不可重复读和“虚读”。
+    
+7. `Hashtable`和`Vector`是线程安全的。
+8. Web服务器指的是提供Web功能的服务器，主要就是HTTP服务器，包括图片下载等一系列和文本相关的内容。Web服务器支持以HTTP协议的方式来访问，当Web服务器接收到一个HTTP请求时，它同样会以HTTP协议格式返回一个响应。Web服务器一般都使用了一些特有的机制来保证Web服务器有较好的扩展性和不间断地提供服务。常见的Web服务器有IIS和Apache；应用服务器提供访问业务逻辑的途径以供客户端应用程序使用。具体而言，它通过HTTP、TCP/IP、IIOP或JRMP等协议来提供业务逻辑接口。常见的应用服务器有BEA WebLogic Server、IBM WebSphere Application Server、JBOSS和Tomcat等。
+Web服务器一般是通用的，而应用服务器一般是专用的，例如Tomcat只能处理Java应用程序而不能处理ASPX和PHP。需要注意的是，Web服务器与应用服务器是并列关系，二者不存在相互包容关系。

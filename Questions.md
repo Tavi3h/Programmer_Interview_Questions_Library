@@ -2117,3 +2117,106 @@ Sub.num = 3
 7. `Hashtable`和`Vector`是线程安全的。
 8. Web服务器指的是提供Web功能的服务器，主要就是HTTP服务器，包括图片下载等一系列和文本相关的内容。Web服务器支持以HTTP协议的方式来访问，当Web服务器接收到一个HTTP请求时，它同样会以HTTP协议格式返回一个响应。Web服务器一般都使用了一些特有的机制来保证Web服务器有较好的扩展性和不间断地提供服务。常见的Web服务器有IIS和Apache；应用服务器提供访问业务逻辑的途径以供客户端应用程序使用。具体而言，它通过HTTP、TCP/IP、IIOP或JRMP等协议来提供业务逻辑接口。常见的应用服务器有BEA WebLogic Server、IBM WebSphere Application Server、JBOSS和Tomcat等。
 Web服务器一般是通用的，而应用服务器一般是专用的，例如Tomcat只能处理Java应用程序而不能处理ASPX和PHP。需要注意的是，Web服务器与应用服务器是并列关系，二者不存在相互包容关系。
+
+## 真题十五
+
+### 问答题
+
+**问题：**
+
+1. 在`int i = 0; i = i++;`语句中`i = i++;`是线程安全的吗？如果不安全，请说明上面操作在JVM中的执行过程，为什么不安全？说出JDK中哪个类能达到以上程序的效果，并且是线程安全而高校的，简述其原理。
+2. 定义数组`int[200] a = {1, 2, 2, 3,...}`，数组元素都为正整数，且`a[i + 1] > a[i]`，请快速输出`a[i] = i`的数。
+3. 用Java语言编写程序，扫描指定文件夹下面所有以.txt或.log结尾的文件，并将其绝对路径输出。
+4. 定义数组`int[n] a = {1, 2, 3, 3, 4, 3, 2,...}`，数组`a`中的数均为正整数，当满足`a[i] + a[t] = a[x]`时，其中，`i`、`t`和`x`均为正数，且小于等于`n`，求最大的`a[x]`。
+5. 一个简单的论坛系统中数据库扮演者非常重要的角色，假设数据库需要存储如下的一些数据：用户名、email、主页、电话、联系地址、发帖标题、发帖内容、回复标题以及回复内容。每天论坛的访问量达400万左右，更新帖子达10万左右。请给出数据库表结构设计并结合范式简要说明设计思路。
+
+**解答：**
+
+1. 不安全，`i++`操作不是线程安全的。语句`i = i++`的执行过程如下：先把`i`的值取出来放到栈顶，可以理解为引入了一个第三方变量`k`，此时`k`的值为`i`，然后执行自增操作，于是`i`的值变为1，最后执行赋值操作`i=k`，因此，执行结束后`i`的值仍是0。从以上分析可以得出，`i=i++`语句的执行过程由多个操作组成，它不是原子操作，因此，不是线程安全的。
+在Java语言中`++i`和`i++`操作并不是线程安全的。而`AtomicInteger`是一个提供原子操作的`Integer`类，它提供了线程安全且高效的原子操作，是线程安全的，其底层的原理是利用处理器的CAS（Compare And Swap，比较与交换）操作来检测栈中的值是否被其他线程改变，如果被改变，则CAS操作失败。这种实现方法在CPU指令级别实现了原子操作，因此它比使用`synchronized`效率更高。
+CAS操作过程都包含三个运算符：内存地址V、期望值A和新值B。当操作的时候，如果地址V上存放的值等于期望值A，则地址V上的值赋为新值B，否则，不做任何操作，但是要返回原值是多少。这就要保证比较和设值两个动作是原子性操作。系统主要是利用JNI（Java Native Interface，Java本地接口）来保证这个原子操作，它利用CPU硬件支持来完成，使用硬件提供`swap`和`test_and_set`指令，单CPU下同一指令的多个指令周期不可中断，SMP（Symmetric Multi-Processing，对称多处理结构）中通过锁总线支持这两个指令的原子性。
+2. 代码如下：
+```java
+public class IndexEqualsToValue {
+    public List<Integer> find(int[] arr) {
+        List<Integer> res = new ArrayList<>();
+        int i = 0, j = arr.length - 1;
+        while (i <= j) {
+            if (arr[i] == i) {
+                res.add(i++);
+            } else if (arr[i] > i) {
+                i = arr[i];
+            } else {
+                ++i;
+            }
+        }
+        return res;
+    }
+
+    @Test
+    public void testCase() {
+        int[] arr = { 2, 3, 3, 3, 7, 8, 8, 9, 9, 9, 10 };
+        List<Integer> res = find(arr);
+        for (int i : res) {
+            System.out.println("arr[" + i + "] = " + i);
+        }
+    }
+}
+```
+3. 代码如下：
+```java
+public class GetTxTAndLog {
+    public void getTxTandLog() {
+        Scanner scanner = new Scanner(System.in);
+        String path = scanner.next();
+        getTxTandLog(path);
+        scanner.close();
+    }
+
+    private void getTxTandLog(String path) {
+        File[] files = new File(path).listFiles();
+        for (File file : files) {
+            String fileName = file.getName();
+            if (file.isDirectory()) {
+                getTxTandLog(path + "\\" + fileName);
+            } else {
+                if (fileName.endsWith(".txt") || fileName.endsWith(".log")) {
+                    System.out.println(file.getAbsolutePath());
+                }
+            }
+        }
+    }
+    
+    @Test
+    public void testCase() {
+        getTxTandLog();
+    }
+}
+```
+4. 代码如下：
+```java
+public class MaxAX {
+    public int getMaxAX(int[] arr) {
+        Arrays.sort(arr);
+        for (int i = arr.length - 1; i >= 0; i--) {
+            for (int j = 0; j < i; j++) {
+                int found = Arrays.binarySearch(arr, j + 1, i, arr[i] - arr[j]);
+                if (found >= 0) {
+                    return arr[i];
+                }
+            }
+        }
+        return 0;
+    }
+
+    @Test
+    public void testCase() {
+        int[] arr = { 15, 2, 3, 3, 4, 3, 24, 8, 9, 6 };
+        System.out.println(getMaxAX(arr));
+    }
+}
+```
+5. 参见原书P315。
+
+
+

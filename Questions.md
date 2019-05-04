@@ -2218,5 +2218,58 @@ public class MaxAX {
 ```
 5. 参见原书P315。
 
+## 真题十六
 
+### 编程题
+
+**问题：**
+
+1. 编写一个输出“Hello World!”的程序，用两种方式实现（Application、Applet）。
+2. 用输入/输出编写一个程序，让用户输入一些姓名和电话号码。每一个姓名和号码将添加在文件里。用户按下“Done”按钮来告诉系统整个列表已输入完毕。如果用户输入完整个列表，程序将创建一个输出文件并显示或打印出来。格式如下：555-1212，Tom 123-456-7890，Peggy L.234-567，Marc 234-5678，Ron 876-4321，Beth&Brian 33.1.42.45.70，Jean-Marc。
+
+**解答：**
+
+1. 略。
+2. 代码如下：
+```java
+public class NameAndPhoneNumber {
+
+    public static void main(String[] args) {
+        String name = "", phoneNumber = "";
+        Scanner scanner = new Scanner(System.in);
+        System.out.println("请输入文件保存路径...");
+        String filePath = scanner.nextLine() + "//file.txt";
+        BufferedOutputStream bos = null;
+
+        try {
+            bos = new BufferedOutputStream(new FileOutputStream(new File(filePath)));
+            while (true) {
+                System.out.println("请输入名字...或输入done退出");
+                name = scanner.nextLine();
+                if (name.trim().equalsIgnoreCase("done")) {
+                    break;
+                }
+                System.out.println("请输入手机号码...或输入done退出");
+                phoneNumber = scanner.nextLine();
+                if (phoneNumber.trim().equalsIgnoreCase("done")) {
+                    break;
+                }
+                bos.write((phoneNumber + "," + name + "\n").getBytes());
+            }
+            System.out.println("操作完成...");
+        } catch (Exception e) {
+            e.printStackTrace();
+        } finally {
+            scanner.close();
+            if (bos != null) {
+                try {
+                    bos.close();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }
+        }
+    }
+}
+```
 
